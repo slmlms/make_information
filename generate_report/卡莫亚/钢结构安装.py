@@ -4,12 +4,12 @@ from docxtpl import DocxTemplate
 from openpyxl.reader.excel import load_workbook
 
 Jianyanpi_data_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批.xlsx"
-Jianyanpi_template_path = "D:\Jobs\卡莫亚\检验批及分项\模板\钢结构安装\检验批\\"
+Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\检验批\\"
 Jianyanpi_save_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批生成\\"
-Fenxiang_tamepate_path = "D:\Jobs\卡莫亚\检验批及分项\模板\钢结构安装\分项质量检查验收记录.docx"
-Fenxiang_Baoyan_template_path = "D:\Jobs\卡莫亚\检验批及分项\模板\钢结构安装\分项报验申请表.docx"
-Fenbu_template_path = "D:\Jobs\卡莫亚\检验批及分项\模板\钢结构安装\分部工程质量检验评定记录.docx"
-Fenbu_Baoyan_template_path = "D:\Jobs\卡莫亚\检验批及分项\模板\钢结构安装\分部报验申请表.docx"
+Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分项质量检查验收记录.docx"
+Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分项报验申请表.docx"
+Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分部工程质量检验评定记录.docx"
+Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分部报验申请表.docx"
 
 
 # 给定一个Sheet名称，读取Excel表格，并返回一个Dataframe
