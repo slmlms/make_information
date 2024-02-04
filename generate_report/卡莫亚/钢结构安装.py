@@ -1,24 +1,48 @@
+import os
+
 import openpyxl
-import pandas as pd
 from docxtpl import DocxTemplate
 from openpyxl.reader.excel import load_workbook
+from tqdm import tqdm
 
 Jianyanpi_data_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批.xlsx"
-Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\检验批\\"
+Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\检验批\\"
 Jianyanpi_save_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批生成\\"
-Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分项质量检查验收记录.docx"
-Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分项报验申请表.docx"
-Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分部工程质量检验评定记录.docx"
-Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\resources\inspection_lot\钢结构安装\分部报验申请表.docx"
-
+Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分项质量检查验收记录.docx"
+Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分项报验申请表.docx"
+Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分部工程质量检验评定记录.docx"
+Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分部报验申请表.docx"
 
 # 给定一个Sheet名称，读取Excel表格，并返回一个Dataframe
+import pandas as pd
+
+
 def read_excel_to_dataframe(file_path, sheet_name):
+    """
+    从Excel文件中读取指定工作表到DataFrame中
+
+    Args:
+        file_path (str): Excel文件的路径
+        sheet_name (str): 需要读取的工作表名称
+
+    Returns:
+        pandas.DataFrame: 读取的工作表数据作为DataFrame对象
+    """
     df = pd.read_excel(file_path, sheet_name=sheet_name)
     return df
 
 
 def get_template_file_path(sheet, row):
+    """
+    获取模板文件路径
+
+    Args:
+        sheet (openpyxl.Workbook): Excel工作簿对象
+        row (int): 需要获取文件路径的行号
+
+    Returns:
+        str: 模板文件的路径
+    """
     cell_value = sheet.cell(row=row, column=4).value
 
     if "屋面瓦" in cell_value or "墙面瓦" in cell_value:
@@ -30,29 +54,38 @@ def get_template_file_path(sheet, row):
     return template_file_path
 
 
-import os
-
-
 def extract_filename_from_path(file_path):
+    """
+    从文件路径中提取文件名
+
+    Args:
+        file_path (str): 文件路径
+
+    Returns:
+        str: 文件名（不包含扩展名）
+    """
     base_name = os.path.basename(file_path)  # 获取路径的基本名称（即文件名）
     filename_without_extension, extension = os.path.splitext(base_name)  # 分离文件名和扩展名
     return filename_without_extension
 
 
+# 生成检查单函数
 def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
     try:
         # 使用openpyxl库读取Excel表格
         wb = load_workbook(Jianyanpi_data_path)
-
+        print("检验批")
+        # 遍历表格中的每一个Sheet
         for sheet in wb:
-            # 打印Sheet名称
-            print(sheet.title)
 
-            for row in range(2, sheet.max_row + 1):
+            # 遍历每一行
+            for row in tqdm(range(2, sheet.max_row + 1), desc=f'Processing Sheet: {sheet.title}'):
                 try:
+                    # 获取模板文件路径
                     template_file_path = get_template_file_path(sheet, row)
                     template_file = DocxTemplate(template_file_path)
 
+                    # 获取数据
                     data = {
                         "Danweigongchengmingcheng": sheet.cell(row=row, column=1).value,
                         "Fenbugongchengmingcheng": sheet.cell(row=row, column=2).value,
@@ -64,11 +97,14 @@ def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
                     for key in data:
                         if data[key] is None:
                             data[key] = ''
+
+                    # 构建保存路径
                     save_path = Jianyanpi_save_path + sheet.title + "/" + data['Fenbugongchengmingcheng'] + "/" + data[
                         'Fenxianggongchengmingcheng'] + '/'
                     if not os.path.exists(os.path.dirname(save_path)):
                         os.makedirs(os.path.dirname(save_path))
 
+                    # 渲染模板文件并保存
                     template_file.render(data)
                     template_file.save(
                         save_path + extract_filename_from_path(template_file_path) + data["Jianyanchibuwei"] + '.docx')
@@ -95,7 +131,7 @@ def generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path):
     try:
         # 使用openpyxl库读取Excel表格
         wb = load_workbook(Jianyanpi_data_path)
-
+        print("分项")
         for sheet in wb:
             # 打印Sheet名称
             print(sheet.title)
@@ -105,7 +141,8 @@ def generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path):
 
                 unique_project_names = df['分项工程名称'].unique()
 
-                for unique_project_name in unique_project_names:
+                for unique_project_name in tqdm(unique_project_names,
+                                                desc=f'Processing Projects in Sheet: {sheet.title}'):
                     try:
                         tpl = DocxTemplate(Fenxiang_tamepate_path)  # 确保Fenxiang_tamepate_path变量已定义
                         tpl_baoyan = DocxTemplate(Fenxiang_Baoyan_template_path)
@@ -138,9 +175,10 @@ def generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path):
                             os.makedirs(os.path.dirname(save_path))
                         #
                         tpl.render(data)
-                        tpl.save(save_path +"02"+ data["Fenxianggongchengmingcheng"] + '分项质量检查验收记录.docx')
+                        tpl.save(save_path + "02" + data["Fenxianggongchengmingcheng"] + '分项质量检查验收记录.docx')
                         tpl_baoyan.render(data)
-                        tpl_baoyan.save(save_path +"01"+ data["Fenxianggongchengmingcheng"] + '分项质量检查验收记录-报验表.docx')
+                        tpl_baoyan.save(
+                            save_path + "01" + data["Fenxianggongchengmingcheng"] + '分项质量检查验收记录-报验表.docx')
                     except FileNotFoundError as fnfe:
                         print(f"模板文件 {Fenxiang_tamepate_path} 不存在. 错误信息: {fnfe}")
                     except KeyError as ke:
@@ -169,7 +207,7 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
     try:
         # 使用openpyxl库读取Excel表格
         wb = load_workbook(Jianyanpi_data_path)
-
+        print("分部")
         for sheet in wb:
 
             # 打印Sheet名称
@@ -178,7 +216,7 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
             df = read_excel_to_dataframe(Jianyanpi_data_path, sheet.title)
             unique_project_names = df['分部工程名称'].unique()
 
-            for unique_project_name in unique_project_names:
+            for unique_project_name in tqdm(unique_project_names, desc=f'Processing Projects in Sheet: {sheet.title}'):
                 try:
 
                     data = {}
@@ -212,8 +250,9 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
 
                     # 添加对保存路径和文件名的异常处理
                     try:
-                        tpl.save(save_path +"02"+ data['Fenbugongchengmingcheng'] + "分部工程质量检验评定记录.docx")
-                        tpl_Baoyan.save(save_path+"01" + data['Fenbugongchengmingcheng'] + "分部工程质量检验评定记录-报验表.docx")
+                        tpl.save(save_path + "02" + data['Fenbugongchengmingcheng'] + "分部工程质量检验评定记录.docx")
+                        tpl_Baoyan.save(
+                            save_path + "01" + data['Fenbugongchengmingcheng'] + "分部工程质量检验评定记录-报验表.docx")
                     except Exception as e:
                         print(f"保存Word文档时发生错误: {e}")
 
@@ -226,11 +265,9 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
         print(f"处理Excel或生成报告时发生未知错误: {e}")
 
 
-
-
 # 调用方法生成检验批
 generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path)
 # 生成分项及报验表
 generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path)
-#生成分部及报验表
+# 生成分部及报验表
 generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path)
