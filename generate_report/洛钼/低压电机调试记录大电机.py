@@ -1,9 +1,9 @@
 import gc
-import math
 import os
 import pathlib
+import re
+import time
 
-import numpy as np
 import openpyxl
 import win32com.client
 import xlrd
@@ -16,10 +16,10 @@ import utils.data_util as data
 # 选择的模块类型，只能有openpyxl和xlwings
 # model_type: str = 'openpyxl'
 
-save_path = pathlib.Path('D:\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\\')
-work_book_path = "D:\\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\电缆表.xlsx"
+save_path = pathlib.Path('D:\Jobs\洛钼\调试记录\低压电机\大电机\\')
+work_book_path = "D:\Jobs\洛钼\调试记录\低压电机\电动机数据源.xlsx"
 
-excel_template_path = "D:\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\\00-线路绝缘电阻测试记录.xlsx"
+excel_template_path = "D:\Jobs\洛钼\调试记录\低压电机\\3..2.2 100kW及以上低压电动机.xlsx"
 
 # 存储生成的 Excel 文件路径的列表
 generated_files = []
@@ -85,13 +85,12 @@ def excel2Pdf(filePath, excels):
         # 关闭 Excel 进程
         logger.success("所有 Excel 文件已打印完毕")
         logger.success("结束 Excel 进程中...\n")
+        close_excel_by_force(excel)
         return pdfs
     except Exception as e:
         logger.exception(e)
     finally:
         gc.collect()
-
-
 def addWorksheetsOrder(file):
     return file[:file.rfind('.')] + ".pdf"
 
@@ -144,42 +143,39 @@ def create_and_list_pdf_files(root_folder):
     return pdfs
 
 
-def run(rows, sheet_name, count):
+def run(sheet):
     logger.info("当前进程id：", os.getpid())
     # Excel模板，注意选择打开方式
     excel_template = openpyxl.load_workbook(excel_template_path)
-    place = rows[0][0]
 
-    # date = data.int_to_date(rows[0][5])
-    # 测试地点
-    excel_template.worksheets[0]["H4"].value = place
-    # 编号
-    # excel_template.worksheets[0]["M3"].value = "15MCC-" + bianhao + "-" + "{:0>3d}".format(i)
-    # excel_template.sheets[0].range("M5").value = date
-    j = 1
-    for row in rows:
-        num = row[1]
-        start = row[2]
-        end = row[3]
-        cable = row[4]
-        # 写入模板
-        excel_template.worksheets[0]["B" + str(j + 8)].value = num
-        excel_template.worksheets[0]["C" + str(j + 8)].value = start
-        excel_template.worksheets[0]["D" + str(j + 8)].value = end
-        excel_template.worksheets[0]["E" + str(j + 8)].value = cable
-        j += 1
+    for i in range (sheet.nrows):
+        if i == 0:
+            continue
+        row = sheet.row_values(i)
+        # 生成的文件夹名称为row[0]的部分
+        folder_name = ''.join(filter(lambda x: not x.isdigit(), row[0]))
+        folder_path = save_path.joinpath(folder_name)
+        folder_path.mkdir(parents=True, exist_ok=True)  # 创建文件夹
+        if row[4] >7.5 :
+            excel_template.worksheets[0]["N2"].value = row[0]
+            excel_template.worksheets[0]["C3"].value = row[1]
+            excel_template.worksheets[0]["N3"].value = row[2]
+            excel_template.worksheets[0]["C5"].value = row[3]
+            excel_template.worksheets[0]["L5"].value = row[4]
+            excel_template.worksheets[0]["C6"].value = row[5]
+            excel_template.worksheets[0]["L6"].value = row[6]
+            excel_template.worksheets[0]["C7"].value = row[7]
+            excel_template.worksheets[0]["L7"].value = row[8]
+            excel_template.worksheets[0]["C8"].value = row[10]
+            excel_template.worksheets[0]["L8"].value = row[9]
+            excel_template.worksheets[0]["C9"].value = row[11]
 
-    # 生成的文件夹名称为Sheet名称的部分（不包含数字）
-    folder_name = ''.join(filter(lambda x: not x.isdigit(), sheet_name))
-    folder_path = save_path.joinpath(folder_name)
-    folder_path.mkdir(parents=True, exist_ok=True)  # 创建文件夹
-
-    # 生成一个唯一的文件名，以F4单元格的内容作为文件名
-    file_name = f"{sheet_name}{count:03d}"
-    file_name = file_name.replace("/", "_")  # 替换特殊字符
-    save_file = folder_path.joinpath(file_name + '.xlsx')
-    generated_files.append(save_file)  # 将生成的文件路径添加到列表中
-    excel_template.save(save_file)
+            # 生成一个唯一的文件名，以F4单元格的内容作为文件名
+            file_name = f"{row[0]}{row[1]}"
+            file_name = file_name.replace("/", "_")  # 替换特殊字符
+            save_file = folder_path.joinpath(file_name + '.xlsx')
+            generated_files.append(save_file)  # 将生成的文件路径添加到列表中
+            excel_template.save(save_file)
 
 
 def list_folders(directory):
@@ -190,25 +186,13 @@ def list_folders(directory):
 
 
 if __name__ == '__main__':
+    excel_instance = None  # 全局变量保存Excel实例
     wb = xlrd.open_workbook(work_book_path)
-    i = 1
-    for sheet in wb.sheets():
-        sheet_name = sheet.name
-        bianhao = sheet_name + str(i)
-        datas = []
-        # 一个报告17行。向上取整
-        files = math.ceil(sheet.nrows / 17)
-        # 将所有的行添加到一个数组
-        for i in range(1, sheet.nrows):
-            datas.append(sheet.row_values(i))
-        # 利用numpy对数组分割
-        rows_list = np.array_split(datas, files)
+    sheet = wb.sheet_by_name("电机数据")
 
-        count = 1
-        for rows in rows_list:
-            run(rows, sheet_name, count)
-            count += 1
-        data.close_excel()
+    run(sheet)
+
+    data.close_excel()
 
     # 在循环结束后保存所有生成的 Excel 文件
     folders = list_folders(save_path)

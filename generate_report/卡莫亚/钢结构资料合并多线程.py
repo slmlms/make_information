@@ -1,6 +1,9 @@
+import concurrent.futures
 import gc
 import os
+import threading
 
+import pythoncom
 import win32com.client
 import win32com.client
 from PyPDF2 import PdfFileMerger
@@ -16,24 +19,26 @@ def word2Pdf(filePath, words):
     # 开始转换
     try:
         pdfs = []
+        lock = threading.Lock()
         word = win32com.client.Dispatch("Word.Application")
         word.Visible = 0
         word.DisplayAlerts = False
         doc = None
         for i in tqdm(range(len(words))):
-            logger.debug(i)
-            fileName = words[i]  # 文件名称
-            fromFile = os.path.join(filePath, fileName)  # 文件地址
-            toFileName = changeSufix2Pdf(fileName)  # 生成的文件名称
-            toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
-            pdfs.append(toFile)
-            # 某文件出错不影响其他文件打印
-            try:
-                doc = word.Documents.Open(fromFile)
-                doc.SaveAs(toFile, 17)  # 生成的所有 PDF 都会在 PDF 文件夹中
-            except Exception as e:
-                logger.exception(e)
-            # 关闭 Word 进程
+            with lock:
+                logger.debug(i)
+                fileName = words[i]  # 文件名称
+                fromFile = os.path.join(filePath, fileName)  # 文件地址
+                toFileName = changeSufix2Pdf(fileName)  # 生成的文件名称
+                toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
+                pdfs.append(toFile)
+                # 某文件出错不影响其他文件打印
+                try:
+                    doc = word.Documents.Open(fromFile)
+                    doc.SaveAs(toFile, 17)  # 生成的所有 PDF 都会在 PDF 文件夹中
+                except Exception as e:
+                    logger.exception(e)
+                # 关闭 Word 进程
         doc.Close()
         word.Quit()
         return sort_docx_files(pdfs)
@@ -118,7 +123,7 @@ if __name__ == "__main__":
         # 指定目录及子目录下的所有.docx文件
         root_folder = os.path.join(directory_path, folder)
         # 指定合并后保存的文件名
-        output_folder = os.path.join(directory_path, folder, folder + ".pdf")
+        output_folder = os.path.join(directory_path, folder, folder+".pdf")
         # 执行主函数
         pdfs = create_and_list_pdf_files(root_folder)
         merge_pdfs(pdfs, output_folder)

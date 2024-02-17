@@ -356,6 +356,6 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
 # 调用方法生成检验批
 generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path)
 # 生成分项及报验表
-# generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path)
-# # # 生成分部及报验表
-# generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path)
+generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path)
+# # 生成分部及报验表
+generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path)

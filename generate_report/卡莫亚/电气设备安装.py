@@ -1,17 +1,18 @@
 import os
+import random
 
 import openpyxl
 from docxtpl import DocxTemplate
 from openpyxl.reader.excel import load_workbook
 from tqdm import tqdm
 
-Jianyanpi_data_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批.xlsx"
-Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\检验批\\"
-Jianyanpi_save_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批生成\\"
-Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分项质量检查验收记录.docx"
-Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分项报验申请表.docx"
-Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分部工程质量检验评定记录.docx"
-Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分部报验申请表.docx"
+Jianyanpi_data_path = "D:\Jobs\卡莫亚\检验批及分项\电气设备安装.xlsx"
+Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\检验批\\"
+Jianyanpi_save_path = "D:\Jobs\卡莫亚\检验批及分项\电气设备安装检验批生成\\"
+Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分项质量检查验收记录.docx"
+Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分项报验申请表.docx"
+Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分部工程质量检验评定记录.docx"
+Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分部报验申请表.docx"
 
 # 给定一个Sheet名称，读取Excel表格，并返回一个Dataframe
 import pandas as pd
@@ -33,23 +34,9 @@ def read_excel_to_dataframe(file_path, sheet_name):
 
 
 def get_template_file_path(sheet, row):
-    """
-    获取模板文件路径
 
-    Args:
-        sheet (openpyxl.Workbook): Excel工作簿对象
-        row (int): 需要获取文件路径的行号
 
-    Returns:
-        str: 模板文件的路径
-    """
-    cell_value = sheet.cell(row=row, column=4).value
-
-    if "屋面瓦" in cell_value or "墙面瓦" in cell_value:
-        template_name = sheet.cell(row=row, column=3).value + "检验批质量检验评定记录-" + cell_value + ".docx"
-        template_file_path = Jianyanpi_template_path + template_name
-    else:
-        template_file_path = Jianyanpi_template_path + sheet.cell(row=row, column=3).value + "检验批质量检验评定记录.docx"
+    template_file_path = Jianyanpi_template_path + sheet.cell(row=row, column=3).value + "检验批质量检验评定记录.docx"
 
     return template_file_path
 
@@ -68,7 +55,11 @@ def extract_filename_from_path(file_path):
     filename_without_extension, extension = os.path.splitext(base_name)  # 分离文件名和扩展名
     return filename_without_extension
 
-
+def jyp_dianqipeiguan(data):
+    for i in range(1, 11):
+        data["yigewan" + str(i)] = str(random.randint(4, 8))+"D"  # 管子只有一个弯
+        data["lianggewan" + str(i)] = str(random.randint(6, 9))+"D"  # 管子有两个弯
+    return data
 # 生成检查单函数
 def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
     try:
@@ -91,8 +82,10 @@ def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
                         "Fenbugongchengmingcheng": sheet.cell(row=row, column=2).value,
                         "Fenxianggongchengmingcheng": sheet.cell(row=row, column=3).value,
                         "Jianyanchibuwei": sheet.cell(row=row, column=4).value,
-                        "Jianyanchirongliang": sheet.cell(row=row, column=5).value
+                        # "Jianyanchirongliang": sheet.cell(row=row, column=5).value
                     }
+                    if data["Fenxianggongchengmingcheng"] == "电气配管":
+                        data = jyp_dianqipeiguan(data)
                     # 遍历字典并替换None为''
                     for key in data:
                         if data[key] is None:
@@ -265,9 +258,10 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
         print(f"处理Excel或生成报告时发生未知错误: {e}")
 
 
+
 # 调用方法生成检验批
 generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path)
 # 生成分项及报验表
 generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path)
 # 生成分部及报验表
-generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path)
+# generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path)

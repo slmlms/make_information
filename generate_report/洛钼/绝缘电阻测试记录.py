@@ -85,6 +85,7 @@ def excel2Pdf(filePath, excels):
         # 关闭 Excel 进程
         logger.success("所有 Excel 文件已打印完毕")
         logger.success("结束 Excel 进程中...\n")
+        close_excel_by_force(excel)
         return pdfs
     except Exception as e:
         logger.exception(e)
@@ -152,12 +153,13 @@ def run(rows, sheet_name, count):
 
     # date = data.int_to_date(rows[0][5])
     # 测试地点
-    excel_template.worksheets[0]["H4"].value = place
+    excel_template.worksheets[0]["J4"].value = place
     # 编号
     # excel_template.worksheets[0]["M3"].value = "15MCC-" + bianhao + "-" + "{:0>3d}".format(i)
     # excel_template.sheets[0].range("M5").value = date
     j = 1
     for row in rows:
+        if "0.6/1KV" in row[4].upper() and "1.5" not in row[4].upper() and "2.5" not in row[4].upper() and "配电室" in row[2]: continue
         num = row[1]
         start = row[2]
         end = row[3]
