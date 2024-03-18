@@ -1,11 +1,9 @@
 import gc
 import os
 import pathlib
-import re
-import time
+import subprocess
 
 import openpyxl
-import win32com.client
 import xlrd
 from PyPDF2 import PdfFileMerger
 from loguru import logger
@@ -25,25 +23,6 @@ excel_template_path = "D:\Jobs\洛钼\调试记录\低压电机\\3..2.2 100kW及
 generated_files = []
 
 
-def convert_xlsx_to_pdf(folder_path):
-    excel = win32com.client.Dispatch("Excel.Application")
-    excel.Visible = False
-    # 遍历文件夹内的所有子文件夹
-    for subdir, _, _ in os.walk(folder_path):
-        # 遍历子文件夹内的所有文件
-        for file_name in os.listdir(subdir):
-            file_path = os.path.join(subdir, file_name)
-            # 如果文件是xlsx格式的，则转换为pdf
-            if file_name.endswith('.xlsx'):
-                pdf_file_path = os.path.join(subdir, os.path.splitext(file_name)[0] + '.pdf')
-                workbook = excel.Workbooks.Open(file_path)
-                # 使用SaveAs方法将xlsx文件另存为pdf格式
-                workbook.ExportAsFixedFormat(0, pdf_file_path)
-                workbook.Close()
-                logger.info(f"Converted {file_path} to {pdf_file_path}")
-    excel.Quit()
-
-
 def toFileJoin(filePath, file):
     return os.path.join(filePath, 'pdf', file[:file.rfind('.')] + ".pdf")
 
@@ -59,9 +38,9 @@ def excel2Pdf(filePath, excels):
     try:
         pdfs = []
         logger.info("打开 Excel 进程中...")
-        excel = win32com.client.Dispatch("Excel.Application")
-        excel.Visible = 0
-        excel.DisplayAlerts = False
+        # excel = win32com.client.Dispatch("Excel.Application")
+        # excel.Visible = 0
+        # excel.DisplayAlerts = False
 
         for i in range(len(excels)):
             logger.debug(i)
@@ -71,26 +50,33 @@ def excel2Pdf(filePath, excels):
             logger.info("转换：" + fileName + "文件中...")
             # 某文件出错不影响其他文件打印
             try:
-                wb = excel.Workbooks.Open(fromFile)
-                for j in range(1):  # 工作表数量，一个工作簿可能有多张工作表
-                    toFileName = addWorksheetsOrder(fileName)  # 生成的文件名称
-                    toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
+                cmd = ["D:\Software\Libre Offices\program\soffice.com", "--headless", "--convert-to", "pdf", fromFile,
+                       "--outdir", filePath + "\\"]
 
-                    ws = wb.Worksheets(j + 1)  # 若为[0]则打包后会提示越界
-                    ws.ExportAsFixedFormat(0, toFile)  # 每一张都需要打印
-                    logger.success("转换至：" + toFileName + "文件完成")
-                    pdfs.append(toFile)
+                subprocess.run(cmd, encoding="utf-8")
+                pdfs.append(fromFile.replace("xlsx", "pdf"))
+                # wb = excel.Workbooks.Open(fromFile)
+                # for j in range(1):  # 工作表数量，一个工作簿可能有多张工作表
+                #     toFileName = addWorksheetsOrder(fileName)  # 生成的文件名称
+                #     toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
+                #
+                #     ws = wb.Worksheets(j + 1)  # 若为[0]则打包后会提示越界
+                #     ws.ExportAsFixedFormat(0, toFile)  # 每一张都需要打印
+                #     logger.success("转换至：" + toFileName + "文件完成")
+                #     pdfs.append(toFile)
             except Exception as e:
                 logger.exception(e)
         # 关闭 Excel 进程
         logger.success("所有 Excel 文件已打印完毕")
         logger.success("结束 Excel 进程中...\n")
-        close_excel_by_force(excel)
+        # close_excel_by_force(excel)
         return pdfs
     except Exception as e:
         logger.exception(e)
     finally:
         gc.collect()
+
+
 def addWorksheetsOrder(file):
     return file[:file.rfind('.')] + ".pdf"
 
@@ -148,7 +134,7 @@ def run(sheet):
     # Excel模板，注意选择打开方式
     excel_template = openpyxl.load_workbook(excel_template_path)
 
-    for i in range (sheet.nrows):
+    for i in range(sheet.nrows):
         if i == 0:
             continue
         row = sheet.row_values(i)
@@ -156,10 +142,9 @@ def run(sheet):
         folder_name = ''.join(filter(lambda x: not x.isdigit(), row[0]))
         folder_path = save_path.joinpath(folder_name)
         folder_path.mkdir(parents=True, exist_ok=True)  # 创建文件夹
-        if row[4] >7.5 :
-            excel_template.worksheets[0]["N2"].value = row[0]
+        if row[4] > 30:
             excel_template.worksheets[0]["C3"].value = row[1]
-            excel_template.worksheets[0]["N3"].value = row[2]
+            excel_template.worksheets[0]["N3"].value = row[0]
             excel_template.worksheets[0]["C5"].value = row[3]
             excel_template.worksheets[0]["L5"].value = row[4]
             excel_template.worksheets[0]["C6"].value = row[5]
@@ -183,6 +168,14 @@ def list_folders(directory):
     contents = os.listdir(directory)
     # 筛选出文件夹，并返回文件夹名称的集合
     return {item for item in contents if os.path.isdir(os.path.join(directory, item))}
+
+
+# 使用LibreOffice的API将所有文件转换为PDF并合并
+# 将文件转换为PDF
+def convert_to_pdf(input_file, output_file):
+    cmd = ["D:\Software\Libre Offices\program\soffice.com", "--headless", "--convert-to", "pdf", input_file, "--outdir",
+           os.path.dirname(output_file)]
+    subprocess.run(cmd)
 
 
 if __name__ == '__main__':

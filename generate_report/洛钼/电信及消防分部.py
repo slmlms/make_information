@@ -6,13 +6,13 @@ from docxtpl import DocxTemplate
 from openpyxl.reader.excel import load_workbook
 from tqdm import tqdm
 
-Jianyanpi_data_path = "D:\Jobs\卡莫亚\检验批及分项\电气设备安装.xlsx"
-Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\检验批\\"
-Jianyanpi_save_path = "D:\Jobs\卡莫亚\检验批及分项\电气设备安装检验批生成\\"
-Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分项质量检查验收记录.docx"
-Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分项报验申请表.docx"
-Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分部工程质量检验评定记录.docx"
-Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\电气设备安装\分部报验申请表.docx"
+Jianyanpi_data_path = "D:\Jobs\洛钼\仪表和电信分部分项检验批\电信消防.xlsx"
+Jianyanpi_save_path = "D:\Jobs\洛钼\仪表和电信分部分项检验批\电信消防\\"
+Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\智能建筑\检验批\\"
+Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\智能建筑\分项质量检查验收记录.docx"
+Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\智能建筑\分项报验申请表.docx"
+Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\智能建筑\分部工程质量检验评定记录.docx"
+Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\智能建筑\分部报验申请表.docx"
 
 # 给定一个Sheet名称，读取Excel表格，并返回一个Dataframe
 import pandas as pd
@@ -34,8 +34,6 @@ def read_excel_to_dataframe(file_path, sheet_name):
 
 
 def get_template_file_path(sheet, row):
-
-
     template_file_path = Jianyanpi_template_path + sheet.cell(row=row, column=3).value + "检验批质量检验评定记录.docx"
 
     return template_file_path
@@ -55,11 +53,14 @@ def extract_filename_from_path(file_path):
     filename_without_extension, extension = os.path.splitext(base_name)  # 分离文件名和扩展名
     return filename_without_extension
 
+
 def jyp_dianqipeiguan(data):
     for i in range(1, 11):
-        data["yigewan" + str(i)] = str(random.randint(4, 8))+"D"  # 管子只有一个弯
-        data["lianggewan" + str(i)] = str(random.randint(6, 9))+"D"  # 管子有两个弯
+        data["yigewan" + str(i)] = str(random.randint(4, 8)) + "D"  # 管子只有一个弯
+        data["lianggewan" + str(i)] = str(random.randint(6, 9)) + "D"  # 管子有两个弯
     return data
+
+
 # 生成检查单函数
 def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
     try:
@@ -71,6 +72,7 @@ def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
 
             # 遍历每一行
             for row in tqdm(range(2, sheet.max_row + 1), desc=f'Processing Sheet: {sheet.title}'):
+                if sheet.cell(row=row, column=1).value is None: continue
                 try:
                     # 获取模板文件路径
                     template_file_path = get_template_file_path(sheet, row)
@@ -224,14 +226,19 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
 
                     lists = []
                     for i in range(len(part_names)):
-                        list = {}
-                        list['Xuhao'] = str(i + 1)
-                        list['Fenxianggongchengmingcheng'] = part_names[i]
-                        list['count_of_jianyanpi'] = str(
+                        list_dict = {}
+                        list_dict['Xuhao'] = str(i + 1)
+                        list_dict['Fenxianggongchengmingcheng'] = part_names[i]
+                        list_dict['count_of_jianyanpi'] = str(
                             len(df[df['分项工程名称'] == part_names[i]]['检验批部位'].unique()))
-                        list["Shigongdanweipingding"] = "□优良    □合格"
-                        list["Jianlidanweipingding"] = "□优良    □合格"
-                        lists.append(list)
+                        list_dict["Shigongdanweipingding"] = "□优良    □合格"
+                        list_dict["Jianlidanweipingding"] = "□优良    □合格"
+                        lists.append(list_dict)
+
+                    # 确保 lists 至少有 9 个元素
+                    while len(lists) < 10:
+                        lists.append({})
+
                     data['list'] = lists
                     save_path = Jianyanpi_save_path + sheet.title + "/" + data['Fenbugongchengmingcheng'] + "/"
 
@@ -256,7 +263,6 @@ def generate_fenbu_project(Jianyanpi_data_path, Jianyanpi_save_path):
         print(f"无法找到Excel文件: {Jianyanpi_data_path}")
     except Exception as e:
         print(f"处理Excel或生成报告时发生未知错误: {e}")
-
 
 
 # 调用方法生成检验批

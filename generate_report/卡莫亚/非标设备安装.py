@@ -11,13 +11,17 @@ from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)  # 设置日志级别为INFO
 # 文件路径
-Jianyanpi_data_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批.xlsx"
-Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\检验批\\"
-Jianyanpi_save_path = "D:\Jobs\卡莫亚\检验批及分项\钢结构检验批生成\\"
-Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分项质量检查验收记录.docx"
-Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分项报验申请表.docx"
-Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分部工程质量检验评定记录.docx"
-Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\钢结构安装\分部报验申请表.docx"
+Jianyanpi_data_path = "D:\Jobs\卡莫亚\检验批及分项\非标设备检验批.xlsx"
+Jianyanpi_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\检验批\\"
+Jianyanpi_save_path = "D:\Jobs\卡莫亚\检验批及分项\非标设备检验批生成\\"
+Fenxiang_tamepate_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\分项质量检查验收记录.docx"
+Fenxiang_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\分项报验申请表.docx"
+Fenbu_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\分部工程质量检验评定记录.docx"
+Fenbu_Baoyan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\分部报验申请表.docx"
+Manshui_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\检验批\满水试验记录.docx"
+Fengguan_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\检验批\封罐记录.docx"
+Zhenkong_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\检验批\抽真空记录.docx"
+Meiyou_template_path = "D:\Documents\PycharmProjects\make_information\\resources\inspection_lot\非标设备检验批模板\检验批\煤油渗透记录.docx"
 
 
 # 从Excel文件中读取指定工作表到DataFrame中
@@ -62,111 +66,33 @@ def extract_filename_from_path(file_path):
     return filename_without_extension
 
 
-def jyp_wumianwa(data):
-    """
-    生成屋面挖检验批数据，包括檐口与屋脊的平行度、压型金属板波纹对屋脊的垂直度、
-    檐口相邻两块压型金属板端部错位、压型金属板卷边板件最大波浪高。
-
-    Args:
-        data (dict): 包含检验批数据的字典。
-
-    Returns:
-        dict: 更新后的包含检验批数据的字典。
-    """
+def jyp_caoguanguanti(data):
     for i in range(1, 11):
-        data["pingxingdu" + str(i)] = random.randint(1, 3)  # 檐口与屋脊的平行度
-        data["chuizhidu" + str(i)] = random.randint(5, 9)  # 压型金属板波纹对屋脊的垂直度
-        data["cuowei" + str(i)] = random.randint(1, 4)  # 檐口相邻两块压型金属板端部错位
-        data["bolanggao" + str(i)] = random.randint(1, 3)  # 压型金属板卷边板件最大波浪高
+        data["biaogaoA" + str(i)] = random.randint(-5, 10)
+        data["biaogaoB" + str(i)] = random.randint(3, 8)
+        data["gaocha" + str(i)] = random.randint(1, 5)
+        data["diban" + str(i)] = random.randint(1, 8)
+        data["bibanshangkou" + str(i)] = random.randint(1, 2)
+        data["yuanzhou" + str(i)] = random.randint(1, 2)
+        data["banjing" + str(i)] = random.randint(-5, 8)
+        data["bibangaodu" + str(i)] = random.randint(3, 8)
+        data["bibanchuizhidu" + str(i)] = random.randint(3, 9)
+        data["jububianxing" + str(i)] = random.randint(1, 7)
+        data["dingbubianxing" + str(i)] = random.randint(1, 5)
+        data["lishichuizhidu" + str(i)] = random.randint(1, 5)
+        data["zhongxinpiancha" + str(i)] = random.randint(1, 6)
+        data["bibanjuli" + str(i)] = random.randint(-2, 4)
+        data["falanchuizhidu" + str(i)] = random.randint(1, 3)
     return data
 
 
-def jyp_qiangmianwa(data):
-    """
-    生成墙面挖检验批数据，包括墙板波纹线垂直度、墙板包角板的垂直度、
-    相邻两块压型金属板的下端错位。
-
-    Args:
-        data (dict): 包含检验批数据的字典。
-
-    Returns:
-        dict: 更新后的包含检验批数据的字典。
-    """
+def jyp_rongqihanjie(data):
     for i in range(1, 11):
-        data["bowenxian" + str(i)] = random.randint(5, 9)  # 墙板波纹线垂直度
-        data["chuizhidu" + str(i)] = random.randint(5, 9)  # 墙板包角板的垂直度
-        data["cuowei" + str(i)] = random.randint(1, 4)  # 相邻两块压型金属板的下端错位
-    return data
-
-
-def jyp_gangjiegoufangfu(data):
-    """
-    生成钢结构防腐检验批数据，包括室外油漆、室内油漆。
-
-    Args:
-        data (dict): 包含检验批数据的字典。
-
-    Returns:
-        dict: 更新后的包含检验批数据的字典。
-    """
-    for i in range(1, 11):
-        data["shiwai" + str(i)] = random.randint(2, 20)  # 室外油漆
-        data["shinei" + str(i)] = random.randint(2, 20)  # 室内油漆
-    return data
-
-
-def jyp_gangjiegouhanjie(data):
-    """
-    生成钢结构焊接检验批数据，包括对接等要求熔透的焊缝、吊车梁或类似构件的腹板与上翼缘连接处、
-    对接焊缝余高、对接焊缝错边、焊脚尺寸、角焊缝余高。
-
-    Args:
-        data (dict): 包含检验批数据的字典。
-
-    Returns:
-        dict: 更新后的包含检验批数据的字典。
-    """
-    for i in range(1, 11):
-        data["rongtouhanfeng" + str(i)] = random.randint(0, 3)  # 对接等要求熔透的焊缝
-        data["diaocheliang" + str(i)] = random.randint(0, 3)  # 吊车梁或类似构件的腹板与上翼缘连接处
-        data["hanfengyugao" + str(i)] = random.randint(0, 3)  # 对接焊缝余高
-        data["hanfengcuobian" + str(i)] = random.randint(10, 50) / 100  # 对接焊缝错边
-        data["hanjiaochicun" + str(i)] = random.randint(0, 2)  # 焊脚尺寸
-        data["jiaohanfengyugao" + str(i)] = random.randint(0, 2)  # 角焊缝余高
-    return data
-
-
-def jyp_dancenggangjiegou(data):
-    """
-    生成钢结构焊接检验批数据，包括对接等要求熔透的焊缝、吊车梁或类似构件的腹板与上翼缘连接处、
-    对接焊缝余高、对接焊缝错边、焊脚尺寸、角焊缝余高。
-
-    Args:
-        data (dict): 包含检验批数据的字典。
-
-    Returns:
-        dict: 更新后的包含检验批数据的字典。
-    """
-    for i in range(1, 11):
-        data["kuazhongchuizhidu" + str(i)] = random.randint(2, 8)  # 钢屋架、桁架、梁及受压杆跨中垂直度
-        data["cexiangwanqu" + str(i)] = random.randint(2, 8)  # 钢屋架、桁架、梁及受压杆侧向弯曲
-        data["zhengtichuizhidu" + str(i)] = random.randint(2, 8)  # 主体结构整体垂直度
-        data["pingmianwanqudu" + str(i)] = random.randint(2, 8)  # 主体结构整体平面弯曲度
-        data["zhouxianpianyi" + str(i)] = random.randint(1, 3)  # 柱脚底座中心线对定位轴线偏移
-        data["jizhundianbiaogao" + str(i)] = random.randint(1, 3)  # 柱基准点标高
-        data["wanqushigao" + str(i)] = random.randint(1, 8)  # 弯曲矢高
-        data["zhouxianchuizhidu" + str(i)] = random.randint(1, 5)  # 柱轴线垂直度
-        data["qiangjiazhouxianpianyi" + str(i)] = random.randint(1, 3)  # 墙架立柱中心线对定位轴线的偏移
-        data["hengjiachuizhidu" + str(i)] = random.randint(1, 6)  # 抗风桁架的垂直度
-        data["lintiaojianju" + str(i)] = random.randint(1, 3)  # 檩条、墙梁的间距
-        data["pingtaigaodu" + str(i)] = random.randint(1, 9)  # 平台高度
-        data["pingtailiangshuipingdu" + str(i)] = random.randint(5, 9)  # 平台梁水平度
-        data["cexiangwanqu" + str(i)] = random.randint(1, 6)  # 承重平台梁侧向弯曲
-        data["pingtailiangchuizhidu" + str(i)] = random.randint(1, 4)  # 承重平台梁垂直度
-        data["langangaodu" + str(i)] = random.randint(1, 8)  # 栏杆高度
-        data["liganjianju" + str(i)] = random.randint(1, 8)  # 栏杆立柱间距
-        data["hanfengzudui" + str(i)] = random.randint(1, 2)  # 现场焊缝组对间隙
-
+        data["A" + str(i)] = random.randint(1, 2)
+        data["B" + str(i)] = random.randint(1, 2)
+        data["C" + str(i)] = random.randint(1, 2)
+        data["D" + str(i)] = random.randint(0, 1)
+        data["E" + str(i)] = random.randint(1, 2)
     return data
 
 
@@ -178,30 +104,27 @@ def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
         logging.info("成功加载Excel文件: %s", Jianyanpi_data_path)  # 添加日志：成功加载Excel文件
         for sheet in wb:
             # if sheet.title != "尾矿浓密及输送": continue
+            i = 3
             for row in tqdm(range(2, sheet.max_row + 1), desc=f'Processing Sheet: {sheet.title}'):
                 try:
                     template_file_path = get_template_file_path(sheet, row)
                     template_file = DocxTemplate(template_file_path)
+
                     data = {
                         "Danweigongchengmingcheng": sheet.cell(row=row, column=1).value,
                         "Fenbugongchengmingcheng": sheet.cell(row=row, column=2).value,
                         "Fenxianggongchengmingcheng": sheet.cell(row=row, column=3).value,
                         "Jianyanchibuwei": sheet.cell(row=row, column=4).value,
-                        "Jianyanchirongliang": sheet.cell(row=row, column=5).value
+                        "Jianyanchirongliang": sheet.cell(row=row, column=5).value,
+                        "Riqi": sheet.cell(row=row, column=6).value,
+                        "Caoguanguige": sheet.cell(row=row, column=7).value,
+                        "Caizhi": sheet.cell(row=row, column=8).value
                     }
                     # 生成数据
-                    if data["Jianyanchibuwei"] == "屋面瓦":
-                        data = jyp_wumianwa(data)
-                    elif data["Jianyanchibuwei"] == "墙面瓦":
-                        data = jyp_qiangmianwa(data)
-                    elif data["Fenxianggongchengmingcheng"] == "钢结构焊接":
-                        data = jyp_gangjiegouhanjie(data)
-                    elif data["Fenxianggongchengmingcheng"] == "钢结构预拼装":
-                        pass
-                    elif data["Fenxianggongchengmingcheng"] == "钢结构防腐防锈涂料涂装":
-                        data = jyp_gangjiegoufangfu(data)
-                    elif data["Fenxianggongchengmingcheng"] == "钢结构单层结构安装":
-                        data = jyp_dancenggangjiegou(data)
+                    if data["Fenxianggongchengmingcheng"] == "槽体焊接":
+                        data = jyp_rongqihanjie(data)
+                    elif data["Fenxianggongchengmingcheng"] == "槽体安装":
+                        data = jyp_caoguanguanti(data)
                     for key in data:
                         if data[key] is None:
                             data[key] = ''
@@ -211,9 +134,36 @@ def generate_inspection_batch(Jianyanpi_data_path, Jianyanpi_save_path):
                         os.makedirs(os.path.dirname(save_path))
                     template_file.render(data)
                     template_file.save(
-                        save_path + extract_filename_from_path(template_file_path) + "-验收部位-" + data[
+                        save_path + "{:02}".format(i)+"A" + extract_filename_from_path(template_file_path) + "-验收部位-" +
+                        data[
                             "Jianyanchirongliang"] + data[
                             "Jianyanchibuwei"] + '.docx')
+                    if "槽" in data["Jianyanchibuwei"] and "槽体焊接" == data["Fenxianggongchengmingcheng"]:
+                        # 满水试验记录
+                        template_manshui = DocxTemplate(Manshui_template_path)
+                        template_manshui.render(data)
+                        template_manshui.save(save_path + "{:02}".format(i) + "D" + "满水试验记录-验收部位-" + data[
+                            "Jianyanchirongliang"] + data[
+                                                  "Jianyanchibuwei"] + '.docx')
+                        # 封罐记录
+                        template_fengguan = DocxTemplate(Fengguan_template_path)
+                        template_fengguan.render(data)
+                        template_fengguan.save(save_path + "{:02}".format(i) + "E" + "封罐记录-验收部位-" + data[
+                            "Jianyanchirongliang"] + data[
+                                                   "Jianyanchibuwei"] + '.docx')
+                        # 真空记录
+                        template_zhankong = DocxTemplate(Zhenkong_template_path)
+                        template_zhankong.render(data)
+                        template_zhankong.save(save_path + "{:02}".format(i) + "C" + "抽真空记录-验收部位-" + data[
+                            "Jianyanchirongliang"] + data[
+                                                   "Jianyanchibuwei"] + '.docx')
+                        # 煤油记录
+                        template_meiyou = DocxTemplate(Meiyou_template_path)
+                        template_meiyou.render(data)
+                        template_meiyou.save(save_path + "{:02}".format(i) + "B" + "煤油渗透记录-验收部位-" + data[
+                            "Jianyanchirongliang"] + data[
+                                                 "Jianyanchibuwei"] + '.docx')
+                        i = i + 1
                 except FileNotFoundError:
                     logging.error("模板文件 %s 不存在", template_file_path)  # 添加日志：模板文件不存在
                 except IndexError:
@@ -270,6 +220,8 @@ def generate_itemised_project(Jianyanpi_data_path, Jianyanpi_save_path):
                             }
                             lists.append(list)
                         data["list"] = lists
+                        while len(lists) < 20:
+                            lists.append({})
                         save_path = Jianyanpi_save_path + sheet.title + "/" + data['Fenbugongchengmingcheng'] + "/" + \
                                     data['Fenxianggongchengmingcheng'] + '/'
                         if not os.path.exists(os.path.dirname(save_path)):

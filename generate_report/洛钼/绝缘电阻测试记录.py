@@ -2,6 +2,7 @@ import gc
 import math
 import os
 import pathlib
+import subprocess
 
 import numpy as np
 import openpyxl
@@ -16,8 +17,8 @@ import utils.data_util as data
 # 选择的模块类型，只能有openpyxl和xlwings
 # model_type: str = 'openpyxl'
 
-save_path = pathlib.Path('D:\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\\')
-work_book_path = "D:\\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\电缆表.xlsx"
+save_path = pathlib.Path('D:\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\自控\\')
+work_book_path = "D:\\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\自控电缆表.xlsx"
 
 excel_template_path = "D:\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\\00-线路绝缘电阻测试记录.xlsx"
 
@@ -59,9 +60,9 @@ def excel2Pdf(filePath, excels):
     try:
         pdfs = []
         logger.info("打开 Excel 进程中...")
-        excel = win32com.client.Dispatch("Excel.Application")
-        excel.Visible = 0
-        excel.DisplayAlerts = False
+        # excel = win32com.client.Dispatch("Excel.Application")
+        # excel.Visible = 0
+        # excel.DisplayAlerts = False
 
         for i in range(len(excels)):
             logger.debug(i)
@@ -71,21 +72,25 @@ def excel2Pdf(filePath, excels):
             logger.info("转换：" + fileName + "文件中...")
             # 某文件出错不影响其他文件打印
             try:
-                wb = excel.Workbooks.Open(fromFile)
-                for j in range(1):  # 工作表数量，一个工作簿可能有多张工作表
-                    toFileName = addWorksheetsOrder(fileName)  # 生成的文件名称
-                    toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
-
-                    ws = wb.Worksheets(j + 1)  # 若为[0]则打包后会提示越界
-                    ws.ExportAsFixedFormat(0, toFile)  # 每一张都需要打印
-                    logger.success("转换至：" + toFileName + "文件完成")
-                    pdfs.append(toFile)
+                cmd = ["D:\Software\Libre Offices\program\soffice.com", "--headless", "--convert-to", "pdf", fromFile,
+                       "--outdir", filePath + "\\"]
+                subprocess.run(cmd, encoding="utf-8")
+                pdfs.append(fromFile.replace("xlsx", "pdf"))
+                # wb = excel.Workbooks.Open(fromFile)
+                # for j in range(1):  # 工作表数量，一个工作簿可能有多张工作表
+                #     toFileName = addWorksheetsOrder(fileName)  # 生成的文件名称
+                #     toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
+                #
+                #     ws = wb.Worksheets(j + 1)  # 若为[0]则打包后会提示越界
+                #     ws.ExportAsFixedFormat(0, toFile)  # 每一张都需要打印
+                #     logger.success("转换至：" + toFileName + "文件完成")
+                #     pdfs.append(toFile)
             except Exception as e:
                 logger.exception(e)
         # 关闭 Excel 进程
         logger.success("所有 Excel 文件已打印完毕")
         logger.success("结束 Excel 进程中...\n")
-        close_excel_by_force(excel)
+        # close_excel_by_force(excel)
         return pdfs
     except Exception as e:
         logger.exception(e)
@@ -153,22 +158,22 @@ def run(rows, sheet_name, count):
 
     # date = data.int_to_date(rows[0][5])
     # 测试地点
-    excel_template.worksheets[0]["J4"].value = place
+    excel_template.worksheets[0]["J3"].value = place
+    # excel_template.worksheets[0]["J5"].value = f'{count:03d}'
     # 编号
     # excel_template.worksheets[0]["M3"].value = "15MCC-" + bianhao + "-" + "{:0>3d}".format(i)
     # excel_template.sheets[0].range("M5").value = date
     j = 1
     for row in rows:
-        if "0.6/1KV" in row[4].upper() and "1.5" not in row[4].upper() and "2.5" not in row[4].upper() and "配电室" in row[2]: continue
         num = row[1]
         start = row[2]
         end = row[3]
         cable = row[4]
         # 写入模板
-        excel_template.worksheets[0]["B" + str(j + 8)].value = num
-        excel_template.worksheets[0]["C" + str(j + 8)].value = start
-        excel_template.worksheets[0]["D" + str(j + 8)].value = end
-        excel_template.worksheets[0]["E" + str(j + 8)].value = cable
+        excel_template.worksheets[0]["B" + str(j + 6)].value = num
+        excel_template.worksheets[0]["C" + str(j + 6)].value = start
+        excel_template.worksheets[0]["D" + str(j + 6)].value = end
+        excel_template.worksheets[0]["E" + str(j + 6)].value = cable
         j += 1
 
     # 生成的文件夹名称为Sheet名称的部分（不包含数字）
@@ -198,11 +203,16 @@ if __name__ == '__main__':
         sheet_name = sheet.name
         bianhao = sheet_name + str(i)
         datas = []
-        # 一个报告17行。向上取整
-        files = math.ceil(sheet.nrows / 17)
+
         # 将所有的行添加到一个数组
         for i in range(1, sheet.nrows):
-            datas.append(sheet.row_values(i))
+            row = sheet.row_values(i)
+            # if "0.6/1KV" in row[4].upper() and "1.5" not in row[4].upper() and "2.5" not in row[
+            #     4].upper() and "配电室" in row[2]: continue
+            datas.append(row)
+        # 一个报告17行。向上取整
+        files = math.ceil(len(datas) / 17)
+        if len(datas) <= 0: continue
         # 利用numpy对数组分割
         rows_list = np.array_split(datas, files)
 

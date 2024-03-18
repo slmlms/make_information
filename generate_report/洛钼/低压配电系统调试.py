@@ -2,6 +2,7 @@ import gc
 import os
 import pathlib
 import re
+import subprocess
 import time
 
 import openpyxl
@@ -16,7 +17,7 @@ import utils.data_util as data
 # 选择的模块类型，只能有openpyxl和xlwings
 # model_type: str = 'openpyxl'
 
-save_path = pathlib.Path('D:\Jobs\洛钼\调试记录\配电系统调试\低压系统调试\\')
+save_path = pathlib.Path('D:\Jobs\洛钼\调试记录\配电系统调试\低压系统调试\\各车间生成\\')
 work_book_path = "D:\\Jobs\洛钼\调试记录\电力电缆试验记录（低压电缆）\电缆表.xlsx"
 
 excel_template_path = "D:\Jobs\洛钼\调试记录\配电系统调试\低压系统调试\\00-0低压配电系统调试报告.xlsx"
@@ -59,9 +60,9 @@ def excel2Pdf(filePath, excels):
     try:
         pdfs = []
         logger.info("打开 Excel 进程中...")
-        excel = win32com.client.Dispatch("Excel.Application")
-        excel.Visible = 0
-        excel.DisplayAlerts = False
+        # excel = win32com.client.Dispatch("Excel.Application")
+        # excel.Visible = 0
+        # excel.DisplayAlerts = False
 
         for i in range(len(excels)):
             logger.debug(i)
@@ -71,21 +72,26 @@ def excel2Pdf(filePath, excels):
             logger.info("转换：" + fileName + "文件中...")
             # 某文件出错不影响其他文件打印
             try:
-                wb = excel.Workbooks.Open(fromFile)
-                for j in range(1):  # 工作表数量，一个工作簿可能有多张工作表
-                    toFileName = addWorksheetsOrder(fileName)  # 生成的文件名称
-                    toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
+                cmd = ["D:\Software\Libre Offices\program\soffice.com", "--headless", "--convert-to", "pdf", fromFile,
+                       "--outdir", filePath + "\\"]
 
-                    ws = wb.Worksheets(j + 1)  # 若为[0]则打包后会提示越界
-                    ws.ExportAsFixedFormat(0, toFile)  # 每一张都需要打印
-                    logger.success("转换至：" + toFileName + "文件完成")
-                    pdfs.append(toFile)
+                subprocess.run(cmd, encoding="utf-8")
+                pdfs.append(fromFile.replace("xlsx", "pdf"))
+                # wb = excel.Workbooks.Open(fromFile)
+                # for j in range(1):  # 工作表数量，一个工作簿可能有多张工作表
+                #     toFileName = addWorksheetsOrder(fileName)  # 生成的文件名称
+                #     toFile = toFileJoin(filePath, toFileName)  # 生成的文件地址
+                #
+                #     ws = wb.Worksheets(j + 1)  # 若为[0]则打包后会提示越界
+                #     ws.ExportAsFixedFormat(0, toFile)  # 每一张都需要打印
+                #     logger.success("转换至：" + toFileName + "文件完成")
+                #     pdfs.append(toFile)
             except Exception as e:
                 logger.exception(e)
         # 关闭 Excel 进程
         logger.success("所有 Excel 文件已打印完毕")
         logger.success("结束 Excel 进程中...\n")
-        close_excel_by_force(excel)
+        # close_excel_by_force(excel)
         return pdfs
     except Exception as e:
         logger.exception(e)
